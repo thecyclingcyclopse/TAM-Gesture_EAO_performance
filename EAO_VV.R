@@ -1,11 +1,13 @@
+################################################################################
 # 1. INSTALL AND LOAD PACKAGES #################################################
+################################################################################
 ## Installs pacman ("package manager") if needed
 require(pacman)
 if (!require("pacman")) install.packages("pacman")
+## Loads additional packages
 pacman::p_load(pacman, BBEST, data.table, dplyr, GGally, ggplot2, ggthemes, 
                ggvis, httr, lubridate, plotly, psych, rio, rmarkdown, shiny, 
                stringr, tibble, tidyr) 
-
 ################################################################################
 # 2. Set Working Dir & Import Data ############################################# 
 ################################################################################
@@ -17,19 +19,17 @@ vidlist <- import("Videoliste_TAM_gesture.xlsx")
 setwd("evr_at_once_sim/")
 ### CSV Import - Similarity Video Video
 simVV <- import("sim_Video_Video.csv")
-
-# 3. Stats!
-## Create new Median Objects and set column names
-### simVV
-#mclapply(
+################################################################################
+# 3. Stats! ####################################################################
+################################################################################
+## Create statistics object and set column names
 simVV_statob <- data.frame(matrix(0, ncol = 2, nrow = 673))
 x <- c("Filename", "abstr_code")
 colnames(simVV_statob) <- x
 rm(x)
-## Insert additional information to domain specific median table ###############
-##########  (eg. abstractness rating value etc.) ###############################
-### for simVV
+## Insert additional information to domain specific stats object
 simVV_statob$"Filename" <- simVV$"V1"
+## extract abstractness code from filename
 simVV_statob <- simVV_statob %>% 
   group_by(Filename) %>% 
     mutate(abstr_code = str_split(
@@ -41,10 +41,7 @@ simVV_statob <- simVV_statob %>%
   left_join(., select(vidlist, Filename, `Rating Abstractness (18 VP)`),
             by = "Filename")
 rm(vidlist)
-
-# Assessing fit of the mean
-## Deviance
-### simVV
+## Calculate statistical values
 simVV_deviance <- as.data.frame(
   simVV %>%  
     summarize(
@@ -59,10 +56,12 @@ simVV_deviance <- as.data.frame(
     t() # transpose
 )
 rm(simVV)
+## rename column names
 simVV_deviance <- simVV_deviance[-1,]
 simVV_deviance$Filename <- rownames(simVV_deviance)
 rownames(simVV_deviance) <- 1:nrow(simVV_deviance)
 colnames(simVV_deviance) <- c("sd", "min", "max", "mean", "median", "Filename")
+## merge statistical values into statistics object
 simVV_statob <- simVV_statob %>%
   left_join(., simVV_deviance, by = "Filename")
 rm(simVV_deviance)
@@ -75,14 +74,9 @@ simVV_statob <- simVV_statob %>%
   mutate_at(vars(abstr_code), factor)
 colnames(simVV_statob) <- c("Filename", "abstr_code", "abstr_rate", "sd", "min",
                             "max", "mean", "median")
-#) #mclapply
-
+## ANOVA
+summary(aov(mean ~ abstr_code, simVV_statob))
 ################################################################################
 # 4. Plots! ####################################################################
 ################################################################################
-plot(simVV_statob$sd, simVV_statob$abstr_rate)
-
-plot(simVV_statob$abstr_code, simVV_statob$abstr_rate)
-
-plot(simVV_statob$abstr_code, simVV_statob$sd)
-
+plot(simVV_statob$abstr_code, simVV_statob$mean)
