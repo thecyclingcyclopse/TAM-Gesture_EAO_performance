@@ -74,6 +74,8 @@ simVV_statob <- simVV_statob %>%
   mutate_at(vars(abstr_code), factor)
 colnames(simVV_statob) <- c("Filename", "abstr_code", "abstr_rate", "sd", "min",
                             "max", "mean", "median")
+## export stats object to working directory
+write.csv(simVV_statob, "EAO_stats_simVV.csv")
 ## ANOVA
 summary(aov(mean ~ abstr_code, simVV_statob))
 ################################################################################
