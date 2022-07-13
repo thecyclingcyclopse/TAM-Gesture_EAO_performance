@@ -5,9 +5,9 @@
 require(pacman)
 if (!require("pacman")) install.packages("pacman")
 ## Loads additional packages
-pacman::p_load(pacman, BBEST, data.table, dplyr, GGally, ggplot2, ggthemes, 
-               ggvis, httr, lubridate, plotly, psych, rio, rmarkdown, shiny, 
-               stringr, tibble, tidyr) 
+pacman::p_load(pacman, BBEST, data.table, dplyr, GGally, ggplot2, ggstatsplot,
+               ggthemes, ggvis, httr, lubridate, plotly, psych, rio, rmarkdown,
+               shiny, stringr, tibble, tidyr)
 ################################################################################
 # 2. Set Working Dir & Import Data ############################################# 
 ################################################################################
@@ -47,7 +47,7 @@ simAV_deviance <- as.data.frame(
     summarize(
       across(
         c(`mp_dt_schrupfen-x_dunkel`:`dk_dt_zettelaufdemboden_hell`), 
-        list(sd = sd, min = min, max = max, mean = mean, median = median), 
+        list(sd = sd, mini = min, maxi = max, mean = mean, median = median), 
         .names = "{.col}.{.fn}")) %>%
     pivot_longer(
       everything(), 
@@ -60,20 +60,20 @@ rm(simAV)
 simAV_deviance <- simAV_deviance[-1,]
 simAV_deviance$Filename <- rownames(simAV_deviance)
 rownames(simAV_deviance) <- 1:nrow(simAV_deviance)
-colnames(simAV_deviance) <- c("sd", "min", "max", "mean", "median", "Filename")
+colnames(simAV_deviance) <- c("sd", "mini", "maxi", "mean", "median", "Filename")
 ## merge statistical values into statistics object
 simAV_statob <- simAV_statob %>%
   left_join(., simAV_deviance, by = "Filename")
 rm(simAV_deviance)
 simAV_statob$sd <- as.numeric(simAV_statob$sd)
-simAV_statob$min <- as.numeric(simAV_statob$min)
-simAV_statob$max <- as.numeric(simAV_statob$max)
+simAV_statob$mini <- as.numeric(simAV_statob$mini)
+simAV_statob$maxi <- as.numeric(simAV_statob$maxi)
 simAV_statob$mean <- as.numeric(simAV_statob$mean)
 simAV_statob$median <- as.numeric(simAV_statob$median)
 simAV_statob <- simAV_statob %>%
   mutate_at(vars(abstr_code), factor)
-colnames(simAV_statob) <- c("Filename", "abstr_code", "abstr_rate", "sd", "min",
-                            "max", "mean", "median")
+colnames(simAV_statob) <- c("Filename", "abstr_code", "abstr_rate", "sd", "mini",
+                            "maxi", "mean", "median")
 ## export stats object to working directory
 write.csv(simAV_statob, "EAO_stats_simAV.csv")
 ## ANOVA
@@ -81,4 +81,29 @@ summary(aov(mean ~ abstr_code, simAV_statob))
 ################################################################################
 # 4. Plots! ####################################################################
 ################################################################################
-plot(simAV_statob$abstr_code, simAV_statob$mean)
+# Plot
+## GGStatPlot
+ggstatsplot::ggbetweenstats(
+  data = simAV_statob, 
+  x = abstr_code, 
+  y = mini,
+  xlab = "abstraction_code",
+  ylab = "minimum",
+  messages = FALSE
+)
+ggstatsplot::ggbetweenstats(
+  data = simAV_statob, 
+  x = abstr_code, 
+  y = mean,
+  xlab = "abstraction_code",
+  ylab = "mean",
+  messages = FALSE
+)
+ggstatsplot::ggbetweenstats(
+  data = simAV_statob, 
+  x = abstr_code, 
+  y = maxi,
+  xlab = "abstraction_code",
+  ylab = "maximum",
+  messages = FALSE
+)
