@@ -12,12 +12,12 @@ pacman::p_load(pacman, BBEST, data.table, dplyr, GGally, ggplot2, ggstatsplot,
 # 2. Set Working Dir & Import Data ############################################# 
 ################################################################################
 ## Define Parent Working Directory
-setwd("//192.168.178.32/bubu/_bus/MSc KIS/9 Vertiefungsmodul - MRT - 24LP/TAM-Similarities-Data/Datasets/")
+setwd("~/TAM-Similarities-Data/Datasets/")
 ### Importing Videolist XLSX
 vidlist <- import("Videoliste_TAM_gesture.xlsx")
 ## Defining Sub Directories
 setwd("evr_at_once_sim/")
-### CSV Import - Similarity Audio Text
+### CSV Import - Similarity Text Audio
 simAT <- import("sim_Text_Audio.csv")
 ################################################################################
 # 3. Stats! ####################################################################
